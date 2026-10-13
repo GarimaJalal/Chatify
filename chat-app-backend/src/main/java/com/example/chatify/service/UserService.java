@@ -1,19 +1,19 @@
 package com.example.chatify.service;
 
-import com.example.chatify.dto.LoginRequest;
-import com.example.chatify.dto.LoginResponse;
-import com.example.chatify.dto.RegisterRequest;
-import com.example.chatify.dto.RegisterResponse;
+import com.example.chatify.dto.*;
 import com.example.chatify.model.Users;
 import com.example.chatify.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -103,4 +103,21 @@ public class UserService {
         );
     }
 
+    public List<UserSummaryResponse> getAllUsers(Authentication authentication) {
+
+        UUID currentUserId = (UUID) authentication.getPrincipal();
+
+
+        return userRepository.findAllByOrderByFirstNameAscLastNameAsc()
+                .stream()
+                .filter(user -> !user.getId().equals(currentUserId))
+                .map(user -> new UserSummaryResponse(
+                        user.getId(),
+                        user.getFirstName(),
+                        user.getLastName(),
+                        user.getEmail(),
+                        user.getPhoneNumber()
+                ))
+                .toList();
+    }
 }

@@ -19,8 +19,8 @@ public class JwtService {
 
     public JwtService(
             @Value("${chatify.jwt.secret}") String secret,
-            @Value("${chatify.jwt.expiration-ms}") long expirationMs) {
-
+            @Value("${chatify.jwt.expiration-ms}") long expirationMs)
+    {
         byte[] keyBytes = Base64.getDecoder().decode(secret);
         this.secretKey = Keys.hmacShaKeyFor(keyBytes);
         this.expirationMs = expirationMs;
