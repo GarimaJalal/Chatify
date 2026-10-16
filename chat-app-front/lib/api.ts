@@ -9,6 +9,19 @@ export type ChatUser = {
   phoneNumber: string;
 };
 
+export type ChatMessage = {
+  id: string;
+  senderId: string;
+  recipientId: string;
+  content: string;
+  createdAt: string;
+};
+
+export type SendMessageRequest = {
+  recipientId: string;
+  content: string;
+};
+
 export type LoginResponse = {
   token: string;
   tokenType: string;
