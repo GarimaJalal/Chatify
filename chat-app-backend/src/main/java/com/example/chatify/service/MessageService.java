@@ -2,11 +2,13 @@ package com.example.chatify.service;
 
 import com.example.chatify.dto.MessageResponse;
 import com.example.chatify.dto.SendMessageRequest;
+import com.example.chatify.event.ChatMessageSavedEvent;
 import com.example.chatify.model.Message;
 import com.example.chatify.model.Users;
 import com.example.chatify.repository.MessageRepository;
 import com.example.chatify.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,11 @@ public class MessageService {
     MessageRepository messageRepository;
     @Autowired
     UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
+
+    public MessageService(ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+    }
 
     @Transactional
     public MessageResponse sendMessage(UUID senderId, SendMessageRequest request) {
@@ -51,7 +58,11 @@ public class MessageService {
 
         Message savedMessage = messageRepository.save(message);
 
-        return toResponse(savedMessage);
+        MessageResponse response = toResponse(savedMessage);
+
+        eventPublisher.publishEvent(new ChatMessageSavedEvent(response));
+
+        return response;
     }
 
     @Transactional(readOnly = true)
