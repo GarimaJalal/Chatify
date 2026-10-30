@@ -1,5 +1,7 @@
 package com.example.chatify.dto;
 
+import com.example.chatify.model.MessageStatus;
+
 import java.time.Instant;
 import java.util.UUID;
 
@@ -8,6 +10,6 @@ public record MessageResponse(
         UUID senderId,
         UUID recipientId,
         String content,
-        Instant createdAt
-) {
-}
+        Instant createdAt,
+        MessageStatus status
+) {}

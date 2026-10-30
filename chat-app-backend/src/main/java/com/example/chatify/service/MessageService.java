@@ -4,6 +4,7 @@ import com.example.chatify.dto.MessageResponse;
 import com.example.chatify.dto.SendMessageRequest;
 import com.example.chatify.event.ChatMessageSavedEvent;
 import com.example.chatify.model.Message;
+import com.example.chatify.model.MessageStatus;
 import com.example.chatify.model.Users;
 import com.example.chatify.repository.MessageRepository;
 import com.example.chatify.repository.UserRepository;
@@ -52,6 +53,7 @@ public class MessageService {
                 ));
 
         Message message = new Message();
+        message.setId(UUID.randomUUID());
         message.setSender(sender);
         message.setRecipient(recipient);
         message.setContent(request.content().trim());
@@ -93,13 +95,45 @@ public class MessageService {
                 .toList();
     }
 
+    @Transactional
+    public MessageResponse updateMessageStatus(
+            UUID recipientId,
+            UUID messageId,
+            MessageStatus newStatus
+    ) {
+        Message message = messageRepository
+                .findByIdAndRecipient_Id(messageId, recipientId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Message not found or recipient is not authorized"
+                        )
+                );
+
+        MessageStatus currentStatus = message.getStatus();
+
+        if (currentStatus == MessageStatus.READ) {
+            return toResponse(message);
+        }
+
+        if (newStatus == MessageStatus.READ
+                || (currentStatus == MessageStatus.SENT
+                && newStatus == MessageStatus.DELIVERED)) {
+
+            message.setStatus(newStatus);
+            messageRepository.save(message);
+        }
+
+        return toResponse(message);
+    }
+
     private MessageResponse toResponse(Message message) {
         return new MessageResponse(
                 message.getId(),
                 message.getSender().getId(),
                 message.getRecipient().getId(),
                 message.getContent(),
-                message.getCreatedAt()
+                message.getCreatedAt(),
+                message.getStatus()
         );
     }
 }

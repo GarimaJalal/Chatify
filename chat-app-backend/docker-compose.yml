@@ -21,5 +21,17 @@ services:
     volumes:
       - kafka_data:/var/lib/kafka/data
 
+  redis:
+    image: redis:7-alpine
+    container_name: chatify-redis
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   kafka_data:

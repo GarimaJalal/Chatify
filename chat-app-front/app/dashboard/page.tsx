@@ -24,11 +24,13 @@ export default function DashboardPage() {
   > | null>(null);
 
   const selectedUserRef = useRef<ChatUser | null>(null);
+  const messageListRef = useRef<HTMLDivElement | null>(null);
   const usersRef = useRef<ChatUser[]>([]);
   const currentUserIdRef = useRef<string | null>(null);
   const currentEmailRef = useRef<string | null>(null);
 
   const [users, setUsers] = useState<ChatUser[]>([]);
+  const [lastMessageAt, setLastMessageAt] = useState<Record<string, number>>({});
   const [selectedUser, setSelectedUser] = useState<ChatUser | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [search, setSearch] = useState("");
@@ -142,6 +144,7 @@ export default function DashboardPage() {
       if (!token) return;
 
       const unreadIds = new Set<string>();
+      const latestActivity: Record<string, number> = {};
 
       await Promise.all(
         userList
@@ -156,7 +159,18 @@ export default function DashboardPage() {
                 token
               );
 
+              const latestMessageTime = conversation.reduce(
+                (latest, item) =>
+                  Math.max(latest, new Date(item.createdAt).getTime()),
+                0
+              );
+
+              if (latestMessageTime > 0) {
+                latestActivity[user.id] = latestMessageTime;
+              }
+
               const lastRead = localStorage.getItem(getReadKey(user.id));
+
               const lastReadTime = lastRead
                 ? new Date(lastRead).getTime()
                 : 0;
@@ -178,6 +192,7 @@ export default function DashboardPage() {
       );
 
       setUnreadUserIds(unreadIds);
+      setLastMessageAt(latestActivity);
     },
     [getReadKey]
   );
@@ -197,6 +212,18 @@ export default function DashboardPage() {
       setLoadingMessages(false);
     }
   }, [selectedUser, loadConversation]);
+
+
+  useEffect(() => {
+  if (loadingMessages) return;
+
+  const messageList = messageListRef.current;
+
+  if (!messageList) return;
+
+  // Jump directly to the latest message after history loads.
+  messageList.scrollTop = messageList.scrollHeight;
+  }, [messages, loadingMessages, selectedUser]);
 
   // Load the current user's identity and registered users.
   useEffect(() => {
@@ -267,6 +294,12 @@ export default function DashboardPage() {
     const socket = createChatWebSocket(token, {
       onMessage: (incoming) => {
         const activeUser = selectedUserRef.current;
+
+        const conversationUserId = incoming.senderId === currentUserIdRef.current? incoming.recipientId : incoming.senderId;
+        setLastMessageAt((previous) => ({
+          ...previous,
+          [conversationUserId]: new Date(incoming.createdAt).getTime(),
+        }));
 
         const belongsToOpenConversation =
           activeUser !== null &&
@@ -345,22 +378,27 @@ export default function DashboardPage() {
   }, [getReadKey, router]);
 
   const filteredUsers = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    const email = currentEmailRef.current;
+  const query = search.trim().toLowerCase();
+  const email = currentEmailRef.current;
 
-    return users
-      .filter((user) => user.email.toLowerCase() !== email)
-      .filter((user) => {
-        const name =
-          `${user.firstName} ${user.lastName}`.toLowerCase();
+  return users
+    .filter((user) => user.email.toLowerCase() !== email)
+    .filter((user) => {
+      const name =
+        `${user.firstName} ${user.lastName}`.toLowerCase();
 
-        return (
-          !query ||
-          name.includes(query) ||
-          user.email.toLowerCase().includes(query)
-        );
-      });
-  }, [users, search]);
+      return (
+        !query ||
+        name.includes(query) ||
+        user.email.toLowerCase().includes(query)
+      );
+    })
+    .sort(
+      (a, b) =>
+        (lastMessageAt[b.id] ?? 0) -
+        (lastMessageAt[a.id] ?? 0)
+    );
+}, [users, search, lastMessageAt]);
 
   async function handleSendMessage(
     e: React.FormEvent<HTMLFormElement>
@@ -507,7 +545,7 @@ export default function DashboardPage() {
               <p>{selectedUser.email}</p>
             </div>
 
-            <div className="message-list" aria-live="polite">
+            <div className="message-list" aria-live="polite" ref={messageListRef}>
               {loadingMessages && (
                 <p className="muted">Loading conversation...</p>
               )}

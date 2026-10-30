@@ -24,8 +24,8 @@ import java.util.UUID;
 public class Message {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @Column(nullable = false, updatable = false)
+    private UUID id = UUID.randomUUID();
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "sender_id", nullable = false)
@@ -37,6 +37,10 @@ public class Message {
 
     @Column(nullable = false, length = 2000)
     private String content;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private MessageStatus status = MessageStatus.SENT;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

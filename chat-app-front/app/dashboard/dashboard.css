@@ -4,9 +4,11 @@
 ======================================== */
 
 .chatify-dashboard {
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
   display: grid;
   grid-template-columns: 320px minmax(0, 1fr);
+  overflow: hidden;
   background: #f5f7fb;
   color: #20263a;
   font-family: Arial, Helvetica, sans-serif;
@@ -22,7 +24,9 @@
   padding: 28px 18px 20px;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .brand {
@@ -115,7 +119,10 @@
   display: flex;
   flex-direction: column;
   gap: 7px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .person {
@@ -222,9 +229,12 @@
 
 .chat-area {
   min-width: 0;
+  min-height: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
   padding: 34px 42px;
+  overflow: hidden;
 }
 
 .dashboard-header {
@@ -233,6 +243,7 @@
   justify-content: space-between;
   padding-bottom: 25px;
   border-bottom: 1px solid #e8ebf2;
+  flex-shrink: 0;
 }
 
 .dashboard-header h1 {
@@ -326,8 +337,9 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 450px;
+  min-height: 0;
   min-width: 0;
+  overflow: hidden;
 }
 
 .conversation-profile {
@@ -337,6 +349,7 @@
   gap: 9px;
   padding: 28px 10px 24px;
   border-bottom: 1px solid #e8ebf2;
+  flex-shrink: 0;
 }
 
 .avatar.large {
@@ -407,6 +420,7 @@
   min-height: 0;
   min-width: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -480,6 +494,7 @@
   border: 1px solid #e8ebf2;
   border-radius: 15px;
   background: #ffffff;
+  flex-shrink: 0;
 }
 
 .message-composer input {
@@ -518,15 +533,38 @@
 ======================================== */
 
 @media (max-width: 760px) {
+
   .chatify-dashboard {
-    grid-template-columns: 1fr;
+    height: 100vh;
+    height: 100dvh;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
   }
 
   .sidebar {
-    min-height: auto;
+    height: auto;
+    min-height: 0;
+    max-height: 40dvh;
     padding: 18px 14px;
     border-right: 0;
     border-bottom: 1px solid #e8ebf2;
+  }
+
+  .people-list {
+    flex: 1;
+    min-height: 0;
+    max-height: 240px;
+  }
+
+  .chat-area {
+    height: auto;
+    min-height: 0;
+    overflow: hidden;
+    padding: 22px 18px;
+  }
+
+  .conversation {
+    min-height: 0;
   }
 
   .brand {
@@ -537,25 +575,12 @@
     margin-bottom: 20px;
   }
 
-  .people-list {
-    max-height: 240px;
-  }
-
   .person-details small {
     max-width: 100%;
   }
 
   .logout-button {
     margin-top: 18px;
-  }
-
-  .chat-area {
-    padding: 22px 18px;
-    min-height: 60vh;
-  }
-
-  .conversation {
-    min-height: 450px;
   }
 
   .message-list {
